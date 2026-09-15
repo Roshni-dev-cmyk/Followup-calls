@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkoolOfCode — Outreach Scripts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #10142A;
+    --panel: #1A2044;
+    --panel-2: #212961;
+    --line: #323B72;
+    --text: #E9EBFA;
+    --muted: #8D93C4;
+    --mint: #6EE7B7;
+    --amber: #FBBF24;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 34px 34px;
+    background-attachment: fixed;
+    background-color: var(--bg);
+    position: relative;
+  }
+  body::before{
+    content:"";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 900px 500px at 10% -5%, rgba(110,231,183,0.10), transparent 60%),
+                radial-gradient(ellipse 700px 500px at 100% 0%, rgba(251,191,36,0.07), transparent 55%),
+                var(--bg);
+    z-index: -1;
+  }
+  .wrap{
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 36px 20px 70px;
+  }
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+  .brand{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--mint);
+  }
+  .brand span{ color: var(--muted); }
+  .dashboard-link{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--mint);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 8px 14px;
+    white-space: nowrap;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .dashboard-link:hover{
+    border-color: var(--mint);
+    background: rgba(110,231,183,0.08);
+  }
+  h1{
+    font-size: 26px;
+    font-weight: 700;
+    margin: 4px 0 0;
+    letter-spacing: -0.01em;
+  }
+  .prompt-line::before{
+    content: "$ ";
+    color: var(--mint);
+  }
+  /* fields */
+  .fields{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .field label{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field input{
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 9px 10px;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+  .field input:focus{ border-color: var(--mint); }
+
+  /* tabs */
+  .tabs{
+    display:flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab{
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14.5px;
+    padding: 10px 4px;
+    margin-right: 22px;
+    cursor: pointer;
+    position: relative;
+    top: 1px;
+  }
+  .tab.active{
+    color: var(--text);
+    border-bottom: 2px solid var(--mint);
+  }
+  .tab .count{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: 5px;
+  }
+
+  .panel{ display: none; }
+  .panel.active{ display: block; }
+
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card-head{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .card-head .tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: lowercase;
+    color: var(--amber);
+  }
+  .card-head .tag.call{ color: var(--mint); }
+  .card-title{
+    font-size: 14.5px;
+    font-weight: 600;
+    margin: 2px 0 0;
+  }
+  .copy-btn{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+    white-space: nowrap;
+  }
+  .copy-btn:hover{ border-color: var(--mint); color: var(--mint); }
+  .copy-btn.copied{ border-color: var(--mint); color: var(--mint); background: rgba(110,231,183,0.08); }
+
+  .card-body{
+    padding: 16px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .card-body .ph{
+    color: var(--amber);
+    font-weight: 600;
+  }
+
+  footer{
+    margin-top: 30px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  @media (max-width: 560px){
+    h1{ font-size: 21px; }
+    .card-head{ flex-direction: column; align-items: flex-start; gap: 10px; }
+    .copy-btn{ align-self: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="brand">skoolofcode<span>/outreach</span></div>
+      <h1 class="prompt-line">Call &amp; message scripts</h1>
+    </div>
+    <a class="dashboard-link" href="https://skoolofcode.us/trial-class-dashboard" target="_blank" rel="noopener">
+      Trial class dashboard ↗
+    </a>
+  </header>
+
+  <div class="fields">
+    <div class="field">
+      <label for="agentName">Your name</label>
+      <input id="agentName" value="Roshni" oninput="render()">
+    </div>
+    <div class="field">
+      <label for="company">School / company</label>
+      <input id="company" value="SkoolOfCode" oninput="render()">
+    </div>
+    <div class="field">
+      <label for="parentName">Parent name</label>
+      <input id="parentName" placeholder="e.g. Mrs. Sharma" oninput="render()">
+    </div>
+    <div class="field">
+      <label for="studentName">Student name</label>
+      <input id="studentName" placeholder="e.g. Aarav" oninput="render()">
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-panel="drops" onclick="switchTab('drops')">Drops</button>
+    <button class="tab" data-panel="reg" onclick="switchTab('reg')">Incomplete registration</button>
+    <button class="tab" data-panel="feedback" onclick="switchTab('feedback')">Post-trial feedback</button>
+    <button class="tab" data-panel="monthone" onclick="switchTab('monthone')">1-month feedback</button>
+  </div>
+
+  <!-- DROPS -->
+  <div class="panel active" id="panel-drops">
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag call">call script</div><div class="card-title">Check-in call</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="drops-call"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if no answer</div><div class="card-title">Follow-up message</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="drops-msg"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if feedback is good</div><div class="card-title">Review request — Google</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="drops-review-google"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if feedback is good</div><div class="card-title">Review request — Trustpilot</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="drops-review-trustpilot"></div>
+    </div>
+  </div>
+
+  <!-- INCOMPLETE REGISTRATION -->
+  <div class="panel" id="panel-reg">
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag call">call script</div><div class="card-title">Registration follow-up call</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="reg-call"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if call not received</div><div class="card-title">Message — prefer a callback</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="reg-msg1"></div>
+    </div>
+  </div>
+
+  <!-- POST-TRIAL FEEDBACK -->
+  <div class="panel" id="panel-feedback">
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag call">call script</div><div class="card-title">Post-trial feedback &amp; enrollment call</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="feedback-call"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if call not received</div><div class="card-title">Message — tried reaching today</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="feedback-msg"></div>
+    </div>
+  </div>
+
+  <!-- 1-MONTH FEEDBACK -->
+  <div class="panel" id="panel-monthone">
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag call">call script</div><div class="card-title">1-month check-in call</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="monthone-call"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if call not received</div><div class="card-title">Follow-up message</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="monthone-msg"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if feedback is good</div><div class="card-title">Review request — Google</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="monthone-review-google"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if feedback is good</div><div class="card-title">Review request — Trustpilot</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="monthone-review-trustpilot"></div>
+    </div>
+  </div>
+
+  <footer>values fill in live as you type above · tap copy to grab the finished text</footer>
+</div>
+
+<script>
+const templates = {
+  "drops-call": () =>
+`Hi ${ph('parentName','[Parent Name]')}, this is ${ph('agentName','[Your Name]')} from ${ph('company','[School/Company]')}. I'm calling to check in regarding ${ph('studentName','[Student Name]')}. We noticed that the classes are currently on pause, so I just wanted to understand how things have been going and get your feedback.
+
+We'd also like to know if there are any concerns or challenges from your side that led to the pause. Your feedback will help us understand if there's anything we can improve or assist you with.`,
+
+  "drops-msg": () =>
+`Dear parent,
+
+This is ${ph('agentName','Roshni')} from ${ph('company','SkoolOfCode')}. I tried reaching you on call as I got to know that ${ph('studentName','[Student Name]')} will be taking a break from classes which is completely understandable.
+
+I'd just love to have a quick call. ${ph('studentName','[Student Name]')}'s progress and learning profile will be maintained with us, so resuming whenever the timing is right will be seamless.
+
+Please let me know a convenient time to connect.
+
+Thank you,
+${ph('agentName','Roshni')}
+Team ${ph('company','SkoolOfCode')}`,
+
+  "drops-review-google": () =>
+`Dear Parent 😊
+
+We're truly grateful for your continued support.
+
+If you've been happy with your experience at ${ph('company','SkoolOfCode')}, we'd really appreciate it if you could take a moment to share a review on Google. Your review means a lot to us.
+
+👉 https://shorturl.at/esE58
+
+Thank you so much for your time and support!
+
+Regards,
+Team ${ph('company','SkoolOfCode')}`,
+
+  "drops-review-trustpilot": () =>
+`Dear Parent 😊
+
+We're truly grateful for your continued support.
+
+If you've been happy with your experience at ${ph('company','SkoolOfCode')}, we'd really appreciate it if you could take a moment to share a review on Trustpilot. Your review means a lot to us.
+
+👉 https://www.trustpilot.com/review/skoolofcode.us
+
+Thank you so much for your time and support!
+
+Regards,
+Team ${ph('company','SkoolOfCode')}`,
+
+  "reg-call": () =>
+`We noticed you recently started registering your child for a free trial class but couldn't complete the registration. Let me know if you want me to help you complete the registration. The trial is completely free with no obligation.
+
+You can complete it here: https://skoolofcode.us/trial-class-dashboard`,
+
+  "reg-msg1": () =>
+`Dear parent,
+Kindly let us know if you would prefer a call sometime later. We'd be happy to assist you with completing the registration and scheduling a convenient slot for the trial class.
+
+Warm regards,
+${ph('agentName','Roshni')} M.
+Team ${ph('company','SkoolOfCode')}`,
+
+  "monthone-call": () =>
+`Hello Mr./Ms. ${ph('parentName','[Parent Name]')}, this is ${ph('agentName','Roshni')} from ${ph('company','SkoolOfCode')}. Is this a good time to talk?
+
+It's been about a month since ${ph('studentName','[Student Name]')} started with us, so I wanted to check in and see how things have been going so far.
+
+How has ${ph('studentName','[Student Name]')} been finding the classes — are they enjoying the sessions and keeping up with the pace?
+
+(Pause and listen.)
+
+Do you have any feedback for us on the trainer, the teaching methodology, or the platform? We'd love to know if there's anything we can improve.
+
+Is there anything specific ${ph('studentName','[Student Name]')} would like to explore next, or any area you'd like us to focus on more?
+
+If everything's going well:
+"That's wonderful to hear! We'll continue building on this progress in the coming weeks."
+
+If there are concerns:
+"Thank you for sharing that, I completely understand. Let me note this down and make sure it's addressed."
+
+Just a quick note on the plan — your current billing cycle will be coming up soon, so do let us know if you'd like to continue on the same plan or explore a different one that better fits your schedule.
+
+Thank you so much for your time today. We're really glad to have ${ph('studentName','[Student Name]')} learning with us, and we look forward to the next month ahead. Have a great day!`,
+
+  "monthone-msg": () =>
+`Dear Parent,
+
+I tried calling you to know how ${ph('studentName','[Student Name]')}'s classes are going, but I wasn't able to reach you. I would love to hear your feedback on the sessions and know if you have any concerns or suggestions. Please let me know a convenient time to connect, or feel free to share your feedback over message.
+
+Thank you!
+
+Regards,
+${ph('agentName','Roshni')} M
+Team ${ph('company','SkoolOfCode')}`,
+
+  "monthone-review-google": () =>
+`Dear Parent 😊
+
+We're truly grateful for your continued support.
+
+If you've been happy with your experience at ${ph('company','SkoolOfCode')}, we'd really appreciate it if you could take a moment to share a review on Google. Your review means a lot to us.
+
+👉 https://shorturl.at/esE58
+
+Thank you so much for your time and support!
+
+Regards,
+Team ${ph('company','SkoolOfCode')}`,
+
+  "monthone-review-trustpilot": () =>
+`Dear Parent 😊
+
+We're truly grateful for your continued support.
+
+If you've been happy with your experience at ${ph('company','SkoolOfCode')}, we'd really appreciate it if you could take a moment to share a review on Trustpilot. Your review means a lot to us.
+
+👉 https://www.trustpilot.com/review/skoolofcode.us
+
+Thank you so much for your time and support!
+
+Regards,
+Team ${ph('company','SkoolOfCode')}`,
+
+  "feedback-call": () =>
+`Hello Mr./Ms. ${ph('parentName','[Parent Name]')}, this is ${ph('agentName','Roshni')} from ${ph('company','SkoolOfCode')}. Is this a good time to talk?
+
+Firstly, I wanted to thank you for taking the trial class with ${ph('company','SkoolOfCode')}. I just wanted to check in and understand your feedback. How did ${ph('studentName','[Student Name]')} enjoy the class?
+
+(Pause and listen.)
+
+Do you have any questions regarding the pricing, teaching methodology, or the learning path? I'd be happy to answer them.
+
+I hope you had a chance to go through the email we shared with the pricing details and the recommended course.
+
+If yes:
+"Great! Please let me know if you have any questions regarding the plans or the course recommendation."
+
+If no:
+"No worries. Let me quickly explain it."
+
+"Our standard pricing on the website is $150 per month, which includes one 1-hour live class per week."
+
+"At the moment, we have an offer under which the fee is $120 per month."
+
+"If you choose the 3-month plan, the total fee is $330, which works out to just $110 per month."
+
+"The course recommendation shared in the email is based on the trial class and the student's current level, so it's a good starting point. As the student progresses, we will guide them through the next modules based on their interests and learning goals."
+
+Would you like to go ahead with the enrollment?
+
+If yes:
+"Wonderful! We can now finalize the class schedule. Please let me know your preferred days and timings, and I'll help you with the next steps."
+
+If they need time:
+"Absolutely, please take your time. If any questions come up, feel free to reach out to me anytime. I'll be happy to help."
+
+Thank you once again for your time. We look forward to having ${ph('studentName','[Student Name]')} as part of the ${ph('company','SkoolOfCode')} family. Have a wonderful day!`,
+
+  "feedback-msg": () =>
+`Dear Parent,
+
+We tried reaching you today regarding your child's trial class.
+Please let us know if you prefer a call back.
+Kindly do share your feedback or let us know if you have any questions regarding the recommended course or enrollment. We'd appreciate hearing from you soon.
+
+Warm regards,
+${ph('agentName','Roshni')} M
+Team ${ph('company','SkoolOfCode')}`
+};
+
+function val(id, fallback){
+  const v = document.getElementById(id).value.trim();
+  return v.length ? v : fallback;
+}
+function ph(id, fallback){
+  return val(id, fallback);
+}
+
+function render(){
+  Object.keys(templates).forEach(key => {
+    const el = document.querySelector(`[data-template="${key}"]`);
+    if(el) el.textContent = templates[key]();
+  });
+}
+
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.panel === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+}
+
+function copyCard(btn){
+  const body = btn.closest('.card').querySelector('.card-body');
+  navigator.clipboard.writeText(body.textContent).then(() => {
+    const original = btn.textContent;
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1400);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
