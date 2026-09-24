@@ -126,6 +126,7 @@
     gap: 8px;
     margin-bottom: 20px;
     border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
   }
   .tab{
     background: none;
@@ -255,14 +256,33 @@
   </div>
 
   <div class="tabs">
-    <button class="tab active" data-panel="drops" onclick="switchTab('drops')">Drops</button>
+    <button class="tab active" data-panel="pretrial" onclick="switchTab('pretrial')">Pre-trial reminder</button>
+    <button class="tab" data-panel="drops" onclick="switchTab('drops')">Drops</button>
     <button class="tab" data-panel="reg" onclick="switchTab('reg')">Incomplete registration</button>
     <button class="tab" data-panel="feedback" onclick="switchTab('feedback')">Post-trial feedback</button>
     <button class="tab" data-panel="monthone" onclick="switchTab('monthone')">1-month feedback</button>
   </div>
 
+  <!-- PRE-TRIAL REMINDER -->
+  <div class="panel active" id="panel-pretrial">
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag call">call script</div><div class="card-title">Trial class reminder call</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="pretrial-call"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div><div class="tag">if call not answered</div><div class="card-title">Follow-up message</div></div>
+        <button class="copy-btn" onclick="copyCard(this)">Copy</button>
+      </div>
+      <div class="card-body" data-template="pretrial-msg"></div>
+    </div>
+  </div>
+
   <!-- DROPS -->
-  <div class="panel active" id="panel-drops">
+  <div class="panel" id="panel-drops">
     <div class="card">
       <div class="card-head">
         <div><div class="tag call">call script</div><div class="card-title">Check-in call</div></div>
@@ -366,6 +386,22 @@
 
 <script>
 const templates = {
+  "pretrial-call": () =>
+`Hello, am I speaking with the parent of ${ph('studentName','[Student\u2019s Name]')}?
+Hi, this is ${ph('agentName','Roshni')} calling from ${ph('company','SkoolOfCode')}.
+I'm calling to confirm whether ${ph('studentName','[Student\u2019s Name]')} will be attending the trial class scheduled for today.
+We also wanted to check if you have any questions or need any assistance before the class. In case you face any difficulty joining the trial class, please feel free to reach out to us on this number or send us a message on WhatsApp. We'll be happy to assist you.
+Thank you, and we look forward to having ${ph('studentName','[Student\u2019s Name]')} join the trial class today.`,
+
+  "pretrial-msg": () =>
+`Hello, this is ${ph('agentName','Roshni')} from ${ph('company','SkoolOfCode')}.
+We tried reaching you regarding ${ph('studentName','[Student\u2019s Name]')}'s trial class scheduled for today. We just wanted to confirm if the student will be attending the session.
+Please feel free to reply to this message if you have any questions or need any assistance. In case you face any difficulty joining the trial class, you can also reach out to us on this number, and we'll be happy to help.
+Looking forward to hearing from you.
+Warm regards,
+${ph('agentName','Roshni')}
+Team ${ph('company','SkoolOfCode')}`,
+
   "drops-call": () =>
 `Hi ${ph('parentName','[Parent Name]')}, this is ${ph('agentName','[Your Name]')} from ${ph('company','[School/Company]')}. I'm calling to check in regarding ${ph('studentName','[Student Name]')}. We noticed that the classes are currently on pause, so I just wanted to understand how things have been going and get your feedback.
 
@@ -420,7 +456,7 @@ As I can see you have tried to book a trial for <module-name> , Could you tell m
 
   "reg-msg1": () =>
 `Dear parent,
-We tried calling you regarding your child’s registration for the trial class. Kindly let us know if you would prefer a call sometime later. We'd be happy to assist you with completing the registration and scheduling a convenient slot for the trial class.
+We tried calling you regarding your child's registration for the trial class. Kindly let us know if you would prefer a call sometime later. We'd be happy to assist you with completing the registration and scheduling a convenient slot for the trial class.
 
 Warm regards,
 ${ph('agentName','Roshni')} M.
@@ -516,7 +552,7 @@ $105 per month per student
 When a parent refers a new student to SkoolOfCode:
 $50 referral credit will be applied as soon as the referred student enrolls.
 The remaining $50 referral credit will be applied once the referred student completes 3 months with us.
-The total $100 referral credit will be applied toward the referring child’s upcoming course fees.]
+The total $100 referral credit will be applied toward the referring child's upcoming course fees.]
 
 "The course recommendation shared in the email is based on the trial class and the student's current level, so it's a good starting point. As the student progresses, we will guide them through the next modules based on their interests and learning goals."
 
