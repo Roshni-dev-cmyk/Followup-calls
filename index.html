@@ -9,14 +9,14 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #10142A;
-    --panel: #1A2044;
-    --panel-2: #212961;
-    --line: #323B72;
-    --text: #E9EBFA;
-    --muted: #8D93C4;
-    --mint: #6EE7B7;
-    --amber: #FBBF24;
+    --bg: #FFF8E7;
+    --panel: #FFFFFF;
+    --panel-2: #FFF0CC;
+    --line: #F2D9A2;
+    --text: #3B2A14;
+    --muted: #8A6D3B;
+    --mint: #E8590C;
+    --amber: #B45309;
     --radius: 10px;
   }
   *{box-sizing:border-box;}
@@ -27,8 +27,8 @@
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
     background-image:
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      linear-gradient(rgba(232,89,12,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(232,89,12,0.06) 1px, transparent 1px);
     background-size: 34px 34px;
     background-attachment: fixed;
     background-color: var(--bg);
@@ -38,13 +38,13 @@
     content:"";
     position: fixed;
     inset: 0;
-    background: radial-gradient(ellipse 900px 500px at 10% -5%, rgba(110,231,183,0.10), transparent 60%),
-                radial-gradient(ellipse 700px 500px at 100% 0%, rgba(251,191,36,0.07), transparent 55%),
+    background: radial-gradient(ellipse 900px 500px at 10% -5%, rgba(255,190,50,0.35), transparent 60%),
+                radial-gradient(ellipse 700px 500px at 100% 0%, rgba(255,140,60,0.18), transparent 55%),
                 var(--bg);
     z-index: -1;
   }
   .wrap{
-    max-width: 980px;
+    max-width: 1240px;
     margin: 0 auto;
     padding: 36px 20px 70px;
   }
@@ -76,7 +76,7 @@
   }
   .dashboard-link:hover{
     border-color: var(--mint);
-    background: rgba(110,231,183,0.08);
+    background: rgba(232,89,12,0.08);
   }
   h1{
     font-size: 26px;
@@ -195,7 +195,7 @@
     white-space: nowrap;
   }
   .copy-btn:hover{ border-color: var(--mint); color: var(--mint); }
-  .copy-btn.copied{ border-color: var(--mint); color: var(--mint); background: rgba(110,231,183,0.08); }
+  .copy-btn.copied{ border-color: var(--mint); color: var(--mint); background: rgba(232,89,12,0.08); }
 
   .card-body{
     padding: 16px;
@@ -253,7 +253,7 @@
     font-size: 14px;
     padding: 9px 10px;
     outline: none;
-    color-scheme: dark;
+    color-scheme: light;
   }
   .tz select:focus, .tz input:focus{ border-color: var(--mint); }
   .tz-now{
@@ -292,6 +292,37 @@
     color: var(--muted);
     margin-top: 2px;
   }
+
+  /* side layout for time converter */
+  .layout{
+    display:grid;
+    grid-template-columns: minmax(0,1fr) 300px;
+    gap: 22px;
+    align-items:start;
+  }
+  .side{ position: sticky; top: 20px; }
+  .side .tz{ margin-bottom: 0; }
+  .side .tz-inputs{ grid-template-columns: 1fr; }
+  .side .tz-results{ grid-template-columns: 1fr; }
+  @media (max-width: 900px){
+    .layout{ grid-template-columns: 1fr; }
+    .side{ position: static; order: -1; }
+  }
+
+  .fields select, .fields input[type=time]{
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 9px 10px;
+    outline: none;
+    color-scheme: light;
+  }
+  .fields select:focus, .fields input[type=time]:focus{ border-color: var(--mint); }
+  .side .tz-results{ margin-top: 0; }
 </style>
 </head>
 <body>
@@ -308,14 +339,6 @@
 
   <div class="fields">
     <div class="field">
-      <label for="agentName">Your name</label>
-      <input id="agentName" value="Roshni" oninput="render()">
-    </div>
-    <div class="field">
-      <label for="company">School / company</label>
-      <input id="company" value="SkoolOfCode" oninput="render()">
-    </div>
-    <div class="field">
       <label for="parentName">Parent name</label>
       <input id="parentName" placeholder="e.g. Mrs. Sharma" oninput="render()">
     </div>
@@ -323,34 +346,22 @@
       <label for="studentName">Student name</label>
       <input id="studentName" placeholder="e.g. Aarav" oninput="render()">
     </div>
-  </div>
-
-  <div class="tz">
-    <div class="tz-title">$ time converter · PT / CT / ET</div>
-    <div class="tz-inputs">
-      <div class="field">
-        <label for="tzFrom">From zone</label>
-        <select id="tzFrom" onchange="convertTime()">
-          <option value="America/New_York">Eastern (ET)</option>
-          <option value="America/Chicago">Central (CT)</option>
-          <option value="America/Los_Angeles">Pacific (PT)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="tzDate">Date</label>
-        <input type="date" id="tzDate" oninput="convertTime()">
-      </div>
-      <div class="field">
-        <label for="tzTime">Time</label>
-        <input type="time" id="tzTime" oninput="convertTime()">
-      </div>
-      <div class="field">
-        <button class="tz-now" onclick="tzNow()">Use current time</button>
-      </div>
+    <div class="field">
+      <label for="tzFrom">Time zone</label>
+      <select id="tzFrom" onchange="convertTime()">
+        <option value="America/New_York">Eastern (ET)</option>
+        <option value="America/Chicago">Central (CT)</option>
+        <option value="America/Los_Angeles">Pacific (PT)</option>
+      </select>
     </div>
-    <div class="tz-results" id="tzResults"></div>
+    <div class="field">
+      <label for="tzTime">Time</label>
+      <input type="time" id="tzTime" oninput="convertTime()">
+    </div>
   </div>
 
+  <div class="layout">
+  <div class="main">
   <div class="tabs">
     <button class="tab active" data-panel="pretrial" onclick="switchTab('pretrial')">Pre-trial reminder</button>
     <button class="tab" data-panel="drops" onclick="switchTab('drops')">Drops</button>
@@ -477,6 +488,15 @@
     </div>
   </div>
 
+  </div>
+  <aside class="side">
+  <div class="tz">
+    <div class="tz-title">$ class time · PT / CT / ET</div>
+    <div class="tz-results" id="tzResults"></div>
+  </div>
+  </aside>
+  </div>
+
   <footer>values fill in live as you type above · tap copy to grab the finished text</footer>
 </div>
 
@@ -486,6 +506,11 @@ const templates = {
 
 `Hi, this is ${ph('agentName','Roshni')} calling from ${ph('company','SkoolOfCode')}.
 I'm calling to confirm whether ${ph('studentName','[Student\u2019s Name]')} will be attending the trial class scheduled for today.
+Could you please let me know which time zone you are in — Pacific, Central or Eastern?
+
+(Pause and listen. Use the time converter above to get the class time in their zone.)
+
+Thank you! In your time zone, the trial class is scheduled for today at [Class time + zone, e.g. 5:00 PM EDT].
 We also wanted to check if you have any questions or need any assistance before the class. In case you face any difficulty joining the trial class, please feel free to reach out to us on this number or send us a message on WhatsApp. We'll be happy to assist you.
 Thank you, and we look forward to having ${ph('studentName','[Student\u2019s Name]')} join the trial class today.`,
 
@@ -673,7 +698,9 @@ Warm regards,
 Team ${ph('company','SkoolOfCode')}`
 };
 
+const FIXED = { agentName: 'Roshni', company: 'SkoolOfCode' };
 function val(id, fallback){
+  if(FIXED[id]) return FIXED[id];
   const v = document.getElementById(id).value.trim();
   return v.length ? v : fallback;
 }
@@ -734,12 +761,11 @@ function tzParts(date, tz){
 }
 
 function convertTime(){
-  const d = document.getElementById('tzDate').value;
   const t = document.getElementById('tzTime').value;
   const from = document.getElementById('tzFrom').value;
   const box = document.getElementById('tzResults');
-  if(!d || !t){ box.innerHTML = ''; return; }
-  const [y, mo, day] = d.split('-').map(Number);
+  if(!t){ box.innerHTML = ''; return; }
+  const [y, mo, day] = todayIn(from);
   const [h, mi] = t.split(':').map(Number);
   const moment = zonedToDate(y, mo, day, h, mi, from);
   box.innerHTML = TZ_LIST.map(tz => {
@@ -752,15 +778,22 @@ function convertTime(){
   }).join('');
 }
 
+// today's date (y, m, d) in the given zone
+function todayIn(tz){
+  const p = {};
+  new Intl.DateTimeFormat('en-CA',{
+    timeZone: tz, year:'numeric', month:'2-digit', day:'2-digit'
+  }).formatToParts(new Date()).forEach(x => p[x.type] = x.value);
+  return [Number(p.year), Number(p.month), Number(p.day)];
+}
+
 function tzNow(){
   const from = document.getElementById('tzFrom').value;
   const p = {};
   new Intl.DateTimeFormat('en-CA',{
     timeZone: from, hourCycle:'h23',
-    year:'numeric', month:'2-digit', day:'2-digit',
     hour:'2-digit', minute:'2-digit'
   }).formatToParts(new Date()).forEach(x => p[x.type] = x.value);
-  document.getElementById('tzDate').value = `${p.year}-${p.month}-${p.day}`;
   document.getElementById('tzTime').value = `${p.hour}:${p.minute}`;
   convertTime();
 }
