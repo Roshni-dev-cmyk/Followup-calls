@@ -222,6 +222,76 @@
     .card-head{ flex-direction: column; align-items: flex-start; gap: 10px; }
     .copy-btn{ align-self: flex-end; }
   }
+
+  /* time converter */
+  .tz{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 22px;
+  }
+  .tz-title{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--mint);
+    margin-bottom: 14px;
+  }
+  .tz-inputs{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    align-items:end;
+  }
+  .tz select, .tz input[type=date], .tz input[type=time]{
+    width:100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--text);
+    font-family:'Inter', sans-serif;
+    font-size: 14px;
+    padding: 9px 10px;
+    outline: none;
+    color-scheme: dark;
+  }
+  .tz select:focus, .tz input:focus{ border-color: var(--mint); }
+  .tz-now{
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tz-now:hover{ border-color: var(--mint); color: var(--mint); }
+  .tz-results{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .tz-res{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .tz-res.src{ border-color: var(--mint); }
+  .tz-abbr{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+  }
+  .tz-time{ font-size: 22px; font-weight: 700; margin-top: 2px; }
+  .tz-date{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
 </style>
 </head>
 <body>
@@ -253,6 +323,32 @@
       <label for="studentName">Student name</label>
       <input id="studentName" placeholder="e.g. Aarav" oninput="render()">
     </div>
+  </div>
+
+  <div class="tz">
+    <div class="tz-title">$ time converter · PT / CT / ET</div>
+    <div class="tz-inputs">
+      <div class="field">
+        <label for="tzFrom">From zone</label>
+        <select id="tzFrom" onchange="convertTime()">
+          <option value="America/New_York">Eastern (ET)</option>
+          <option value="America/Chicago">Central (CT)</option>
+          <option value="America/Los_Angeles">Pacific (PT)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="tzDate">Date</label>
+        <input type="date" id="tzDate" oninput="convertTime()">
+      </div>
+      <div class="field">
+        <label for="tzTime">Time</label>
+        <input type="time" id="tzTime" oninput="convertTime()">
+      </div>
+      <div class="field">
+        <button class="tz-now" onclick="tzNow()">Use current time</button>
+      </div>
+    </div>
+    <div class="tz-results" id="tzResults"></div>
   </div>
 
   <div class="tabs">
@@ -606,6 +702,70 @@ function copyCard(btn){
     setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1400);
   });
 }
+
+/* ---------- time converter ---------- */
+const TZ_LIST = ['America/Los_Angeles','America/Chicago','America/New_York'];
+
+function tzOffset(date, tz){
+  const p = {};
+  new Intl.DateTimeFormat('en-US',{
+    timeZone: tz, hourCycle:'h23',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  }).formatToParts(date).forEach(x => p[x.type] = x.value);
+  return Date.UTC(p.year, p.month-1, p.day, p.hour, p.minute, p.second) - date.getTime();
+}
+
+// wall-clock time in a given zone -> real Date (handles DST)
+function zonedToDate(y, mo, d, h, mi, tz){
+  const wall = Date.UTC(y, mo-1, d, h, mi);
+  let utc = wall - tzOffset(new Date(wall), tz);
+  utc = wall - tzOffset(new Date(utc), tz);
+  return new Date(utc);
+}
+
+function tzParts(date, tz){
+  const fmt = (opts) => new Intl.DateTimeFormat('en-US', {timeZone: tz, ...opts}).format(date);
+  return {
+    time: fmt({hour:'numeric', minute:'2-digit', hour12:true}),
+    abbr: fmt({timeZoneName:'short'}).split(' ').pop(),
+    date: fmt({weekday:'short', month:'short', day:'numeric'})
+  };
+}
+
+function convertTime(){
+  const d = document.getElementById('tzDate').value;
+  const t = document.getElementById('tzTime').value;
+  const from = document.getElementById('tzFrom').value;
+  const box = document.getElementById('tzResults');
+  if(!d || !t){ box.innerHTML = ''; return; }
+  const [y, mo, day] = d.split('-').map(Number);
+  const [h, mi] = t.split(':').map(Number);
+  const moment = zonedToDate(y, mo, day, h, mi, from);
+  box.innerHTML = TZ_LIST.map(tz => {
+    const r = tzParts(moment, tz);
+    return `<div class="tz-res${tz === from ? ' src' : ''}">
+      <div class="tz-abbr">${r.abbr}</div>
+      <div class="tz-time">${r.time}</div>
+      <div class="tz-date">${r.date}</div>
+    </div>`;
+  }).join('');
+}
+
+function tzNow(){
+  const from = document.getElementById('tzFrom').value;
+  const p = {};
+  new Intl.DateTimeFormat('en-CA',{
+    timeZone: from, hourCycle:'h23',
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit'
+  }).formatToParts(new Date()).forEach(x => p[x.type] = x.value);
+  document.getElementById('tzDate').value = `${p.year}-${p.month}-${p.day}`;
+  document.getElementById('tzTime').value = `${p.hour}:${p.minute}`;
+  convertTime();
+}
+
+tzNow();
 
 render();
 </script>
