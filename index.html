@@ -120,6 +120,25 @@
   }
   .field input:focus{ border-color: var(--mint); }
 
+  /* single details box */
+  .field.wide{ grid-column: 1 / -1; }
+  .field textarea{
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 9px 10px;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color .15s ease;
+  }
+  .field textarea:focus{ border-color: var(--mint); }
+
   /* tabs */
   .tabs{
     display:flex;
@@ -338,13 +357,9 @@
   </header>
 
   <div class="fields">
-    <div class="field">
-      <label for="parentName">Parent name</label>
-      <input id="parentName" placeholder="e.g. Mrs. Sharma" oninput="render()">
-    </div>
-    <div class="field">
-      <label for="studentName">Student name</label>
-      <input id="studentName" placeholder="e.g. Aarav" oninput="render()">
+    <div class="field wide">
+      <label for="details">Details (paste in this format, class time on the last line)</label>
+      <textarea id="details" placeholder="Parent: Munawar Begum&#10;Student: Arsh Ali khan,&#10;Teacher: Chandani&#10;Trial date: Nov 8, 2026&#10;Mon 02 Nov 2026, 05:30 PM PST" oninput="render()"></textarea>
     </div>
     <div class="field">
       <label for="tzFrom">Time zone</label>
@@ -510,7 +525,7 @@ Could you please let me know which time zone you are in — Pacific, Central or 
 
 (Pause and listen. Use the time converter above to get the class time in their zone.)
 
-Thank you! In your time zone, the trial class is scheduled for today at [Class time + zone, e.g. 5:00 PM EDT].
+Thank you! In your time zone, the trial class is scheduled for today at ${classTimeText()}.
 In case you face any difficulty joining the trial class, please feel free to reach out to us on this number or send us a message on WhatsApp. We'll be happy to assist you.
 Thank you, and we look forward to having ${ph('studentName','[Student\u2019s Name]')} join the trial class today.`,
 
@@ -717,16 +732,100 @@ Team ${ph('company','SkoolOfCode')}`
 };
 
 const FIXED = { agentName: 'Roshni', company: 'SkoolOfCode' };
+
+/* ---------- single details box parser ----------
+   Expected format:
+   Parent: Munawar Begum
+   Student: Arsh Ali khan,
+   Teacher: Chandani
+   Trial date: Nov 8, 2026
+*/
+const KEY_MAP = {
+  'parent': 'parentName',
+  'student': 'studentName',
+  'teacher': 'teacherName',
+  'trial date': 'trialDate'
+};
+
+const MONTHS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const ZONE_OF = {
+  PST:'America/Los_Angeles', PDT:'America/Los_Angeles', PT:'America/Los_Angeles',
+  CST:'America/Chicago',     CDT:'America/Chicago',     CT:'America/Chicago',
+  EST:'America/New_York',    EDT:'America/New_York',    ET:'America/New_York'
+};
+
+function parseDetails(){
+  let text = document.getElementById('details').value;
+  const out = {};
+
+  // class time line, e.g. "Mon 02 Nov 2026, 05:30 PM PST"
+  const tm = text.match(/(?:(?:class\s*)?time\s*:\s*)?(?:(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?,?\s+)?(\d{1,2})\s+([A-Za-z]{3,9})\.?\s+(\d{4}),?\s+(\d{1,2}):(\d{2})\s*([AP]M)\s*([A-Za-z]{2,4})/i);
+  if(tm){
+    const mo = MONTHS.indexOf(tm[2].slice(0,3).toLowerCase()) + 1;
+    const zone = ZONE_OF[tm[7].toUpperCase()];
+    if(mo > 0 && zone){
+      out.classTime = {
+        y: Number(tm[3]), mo, d: Number(tm[1]),
+        h: (Number(tm[4]) % 12) + (tm[6].toUpperCase() === 'PM' ? 12 : 0),
+        mi: Number(tm[5]), zone
+      };
+      text = text.replace(tm[0], ' ');
+    }
+  }
+
+  const re = /(parent|student|teacher|trial\s*date)\s*:/gi;
+  const hits = [];
+  let m;
+  while((m = re.exec(text)) !== null){
+    hits.push({ key: m[1].toLowerCase().replace(/\s+/g,' '), start: m.index, end: re.lastIndex });
+  }
+  hits.forEach((h, i) => {
+    const raw = text.slice(h.end, i + 1 < hits.length ? hits[i + 1].start : text.length);
+    // trim whitespace/newlines and any trailing comma
+    const v = raw.replace(/[\s,]+$/,'').replace(/^\s+/,'').replace(/\s*\n\s*/g,' ').trim();
+    if(v.length) out[KEY_MAP[h.key]] = v;
+  });
+  return out;
+}
+
+let DETAILS = {};
+
 function val(id, fallback){
   if(FIXED[id]) return FIXED[id];
-  const v = document.getElementById(id).value.trim();
-  return v.length ? v : fallback;
+  if(DETAILS[id]) return DETAILS[id];
+  return fallback;
 }
 function ph(id, fallback){
   return val(id, fallback);
 }
 
+function classTimeText(){
+  const c = DETAILS.classTime;
+  if(!c) return '[Class time + zone, e.g. 5:00 PM EDT]';
+  const moment = zonedToDate(c.y, c.mo, c.d, c.h, c.mi, c.zone);
+  const names = {'America/Los_Angeles':'Pacific','America/Chicago':'Central','America/New_York':'Eastern'};
+  return TZ_LIST.map(tz => {
+    const r = tzParts(moment, tz);
+    return `${r.time} ${r.abbr} (${names[tz]})`;
+  }).join(' / ') + ' [say the one that matches their zone]';
+}
+
+let lastSyncedTime = '';
+function syncClassTime(){
+  const c = DETAILS.classTime;
+  const key = c ? JSON.stringify(c) : '';
+  if(key === lastSyncedTime) return;
+  lastSyncedTime = key;
+  if(!c) return;
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('tzFrom').value = c.zone;
+  document.getElementById('tzTime').value = pad(c.h) + ':' + pad(c.mi);
+  convertTime();
+}
+
 function render(){
+  DETAILS = parseDetails();
+  syncClassTime();
   Object.keys(templates).forEach(key => {
     const el = document.querySelector(`[data-template="${key}"]`);
     if(el) el.textContent = templates[key]();
@@ -783,7 +882,8 @@ function convertTime(){
   const from = document.getElementById('tzFrom').value;
   const box = document.getElementById('tzResults');
   if(!t){ box.innerHTML = ''; return; }
-  const [y, mo, day] = todayIn(from);
+  const c = DETAILS.classTime;
+  const [y, mo, day] = c ? [c.y, c.mo, c.d] : todayIn(from);
   const [h, mi] = t.split(':').map(Number);
   const moment = zonedToDate(y, mo, day, h, mi, from);
   box.innerHTML = TZ_LIST.map(tz => {
